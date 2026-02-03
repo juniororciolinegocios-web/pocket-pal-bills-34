@@ -63,7 +63,7 @@ export function BillsList({ bills, onTogglePaid, onDelete }: BillsListProps) {
   }
 
   return (
-    <div className="space-y-6 max-h-[700px] overflow-y-auto pr-2">
+    <div className="space-y-5 max-h-[500px] overflow-y-auto pr-2">
       {CATEGORY_ORDER.map(category => {
         const categoryBills = groupedBills[category];
         if (categoryBills.length === 0) return null;

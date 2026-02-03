@@ -20,10 +20,10 @@ export function BillItem({ bill, onTogglePaid, onDelete }: BillItemProps) {
 
   return (
     <div className={cn(
-      "glass-card rounded-lg p-4 flex items-center gap-4 animate-fade-in transition-all duration-200 hover:shadow-md group",
-      bill.isPaid && "opacity-70"
+      "bg-secondary/50 rounded-lg p-3 flex items-center gap-3 transition-all duration-200 hover:bg-secondary group",
+      bill.isPaid && "opacity-60"
     )}>
-      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary text-foreground font-semibold text-sm">
+      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background text-foreground font-medium text-xs">
         {bill.day}
       </div>
       

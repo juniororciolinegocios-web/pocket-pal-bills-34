@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,11 +19,12 @@ import {
 } from '@/components/ui/select';
 
 interface AddBillDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onAddBill: (bill: Omit<Bill, 'id'>) => void;
 }
 
-export function AddBillDialog({ onAddBill }: AddBillDialogProps) {
-  const [open, setOpen] = useState(false);
+export function AddBillDialog({ open, onOpenChange, onAddBill }: AddBillDialogProps) {
   const [name, setName] = useState('');
   const [day, setDay] = useState('');
   const [amount, setAmount] = useState('');
@@ -47,17 +47,11 @@ export function AddBillDialog({ onAddBill }: AddBillDialogProps) {
     setDay('');
     setAmount('');
     setCategory('OUTROS');
-    setOpen(false);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gradient-primary text-primary-foreground gap-2">
-          <Plus className="w-4 h-4" />
-          Nova Conta
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Adicionar Nova Conta</DialogTitle>
@@ -120,10 +114,10 @@ export function AddBillDialog({ onAddBill }: AddBillDialogProps) {
           </div>
           
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit" className="gradient-primary text-primary-foreground">
+            <Button type="submit" className="bg-primary text-primary-foreground">
               Adicionar
             </Button>
           </div>

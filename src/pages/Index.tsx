@@ -1,99 +1,101 @@
-import { Wallet, CheckCircle, Clock, Receipt } from 'lucide-react';
+import { useState } from 'react';
 import { useBills } from '@/hooks/useBills';
-import { SummaryCard } from '@/components/SummaryCard';
-import { ProgressBar } from '@/components/ProgressBar';
+import { Header } from '@/components/Header';
+import { MonthSelector } from '@/components/MonthSelector';
+import { FinancialSummaryCards } from '@/components/FinancialSummaryCards';
+import { ExpensesSection } from '@/components/ExpensesSection';
 import { BillsList } from '@/components/BillsList';
-import { CategoryChart } from '@/components/CategoryChart';
 import { AddBillDialog } from '@/components/AddBillDialog';
+import { ProgressBar } from '@/components/ProgressBar';
 
 const Index = () => {
   const { bills, togglePaid, addBill, deleteBill, totals, categorySummary } = useBills();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
+  const getDateRange = () => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    
+    const formatDate = (date: Date) => 
+      date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' });
+    
+    return `${formatDate(firstDay)} - ${formatDate(lastDay)}`;
   };
-
-  const currentMonth = new Date().toLocaleDateString('pt-BR', { 
-    month: 'long', 
-    year: 'numeric' 
-  });
-
-  const paidCount = bills.filter(b => b.isPaid).length;
-  const pendingCount = bills.filter(b => !b.isPaid).length;
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container py-8 max-w-6xl mx-auto px-4">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Minhas Contas</h1>
-            <p className="text-muted-foreground capitalize mt-1">{currentMonth}</p>
+      <Header onAddBill={() => setAddDialogOpen(true)} />
+      
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        {/* Month Selector */}
+        <div className="flex items-center justify-between mb-6">
+          <MonthSelector 
+            currentMonth={currentMonth} 
+            onMonthChange={setCurrentMonth} 
+          />
+          
+          <div className="flex gap-1 bg-secondary rounded-lg p-1">
+            <button className="px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground transition-colors">
+              Semana
+            </button>
+            <button className="px-3 py-1.5 text-xs font-medium rounded-md bg-card text-foreground shadow-sm">
+              Mês
+            </button>
+            <button className="px-3 py-1.5 text-xs font-medium rounded-md text-muted-foreground hover:text-foreground transition-colors">
+              Hoje
+            </button>
           </div>
-          <AddBillDialog onAddBill={addBill} />
         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <SummaryCard
-            title="Total do Mês"
-            value={formatCurrency(totals.total)}
-            icon={Wallet}
-            subtitle={`${bills.length} contas`}
-          />
-          <SummaryCard
-            title="Pago"
-            value={formatCurrency(totals.paid)}
-            icon={CheckCircle}
-            variant="success"
-            subtitle={`${paidCount} contas pagas`}
-          />
-          <SummaryCard
-            title="Pendente"
-            value={formatCurrency(totals.pending)}
-            icon={Clock}
-            variant="warning"
-            subtitle={`${pendingCount} a pagar`}
-          />
-          <SummaryCard
-            title="Contas"
-            value={bills.length.toString()}
-            icon={Receipt}
-            subtitle="cadastradas"
-          />
-        </div>
-
-        {/* Progress Bar */}
-        <div className="glass-card rounded-xl p-5 mb-6 animate-fade-in">
-          <ProgressBar progress={totals.progress} />
-        </div>
-
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Bills List */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-foreground">Lista de Contas</h2>
-              <span className="text-sm text-muted-foreground">
-                Por categoria
-              </span>
-            </div>
-            <BillsList
-              bills={bills}
-              onTogglePaid={togglePaid}
-              onDelete={deleteBill}
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column - Summary */}
+          <div className="lg:col-span-4">
+            <FinancialSummaryCards
+              total={totals.total}
+              paid={totals.paid}
+              pending={totals.pending}
+              progress={totals.progress}
+              dateRange={getDateRange()}
             />
           </div>
 
-          {/* Category Chart */}
-          <div className="lg:col-span-1">
-            <CategoryChart data={categorySummary} />
+          {/* Right Column - Charts & Lists */}
+          <div className="lg:col-span-8 space-y-6">
+            {/* Progress */}
+            <div className="bg-card rounded-xl p-5 border border-border">
+              <h3 className="font-semibold text-foreground mb-4">Evolução dos Pagamentos</h3>
+              <ProgressBar progress={totals.progress} />
+            </div>
+
+            {/* Expenses Chart */}
+            <ExpensesSection 
+              data={categorySummary} 
+              paidTotal={totals.paid}
+              pendingTotal={totals.pending}
+            />
+
+            {/* Bills List */}
+            <div className="bg-card rounded-xl p-5 border border-border">
+              <h3 className="font-semibold text-foreground mb-4">Contas por Categoria</h3>
+              <BillsList
+                bills={bills}
+                onTogglePaid={togglePaid}
+                onDelete={deleteBill}
+              />
+            </div>
           </div>
         </div>
       </div>
+
+      <AddBillDialog 
+        open={addDialogOpen} 
+        onOpenChange={setAddDialogOpen} 
+        onAddBill={addBill} 
+      />
     </div>
   );
 };

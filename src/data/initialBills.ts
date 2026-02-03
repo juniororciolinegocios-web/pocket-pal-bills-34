@@ -1,0 +1,27 @@
+import { Bill } from '@/types/bill';
+
+export const initialBills: Bill[] = [
+  { id: '1', day: 1, name: 'Cartão C6', amount: 225.23, category: 'CARTAO', isPaid: true },
+  { id: '2', day: 3, name: 'Escola MC', amount: 1562.31, category: 'ESCOLA', isPaid: true },
+  { id: '3', day: 3, name: 'Escola JG', amount: 1371.69, category: 'ESCOLA', isPaid: true },
+  { id: '4', day: 3, name: 'Convênio Pai', amount: 1404.00, category: 'CONVENIO', isPaid: true },
+  { id: '5', day: 3, name: 'Alimentação Casa', amount: 350.00, category: 'CASA', isPaid: true },
+  { id: '6', day: 3, name: 'Convênio Mãe', amount: 1404.00, category: 'CONVENIO', isPaid: true },
+  { id: '7', day: 3, name: 'Convênio Filhos', amount: 904.00, category: 'CONVENIO', isPaid: true },
+  { id: '8', day: 6, name: 'Aluguel GO', amount: 1760.00, category: 'ALUGUEL', isPaid: false },
+  { id: '9', day: 10, name: 'Pensão', amount: 1000.00, category: 'OUTROS', isPaid: false },
+  { id: '10', day: 12, name: 'Fexo', amount: 100.00, category: 'OUTROS', isPaid: false },
+  { id: '11', day: 12, name: 'Aluguel Casa', amount: 1853.05, category: 'ALUGUEL', isPaid: false },
+  { id: '12', day: 15, name: 'IPTU Casa', amount: 120.00, category: 'CASA', isPaid: false },
+  { id: '13', day: 15, name: 'Sabesp', amount: 76.00, category: 'CASA', isPaid: false },
+  { id: '14', day: 15, name: 'Conta Itaú', amount: 1926.48, category: 'CARTAO', isPaid: false },
+  { id: '15', day: 20, name: 'Nivus', amount: 3159.00, category: 'OUTROS', isPaid: false },
+  { id: '16', day: 20, name: 'Cartão Sem Parar', amount: 2082.46, category: 'CARTAO', isPaid: false },
+  { id: '17', day: 24, name: 'Escola Desenho', amount: 320.00, category: 'ESCOLA', isPaid: false },
+  { id: '18', day: 25, name: 'Cartão Nubank PF', amount: 414.71, category: 'CARTAO', isPaid: false },
+  { id: '19', day: 25, name: 'Cartão Nubank PJ', amount: 3443.82, category: 'CARTAO', isPaid: false },
+  { id: '20', day: 25, name: 'Cartão Palmeiras', amount: 745.80, category: 'CARTAO', isPaid: false },
+  { id: '21', day: 25, name: 'Boleto G Verticale', amount: 1650.00, category: 'INVESTIMENTO', isPaid: false },
+  { id: '22', day: 28, name: 'Convênio Filhos', amount: 904.00, category: 'CONVENIO', isPaid: false },
+  { id: '23', day: 29, name: 'Eletropaulo', amount: 250.00, category: 'CASA', isPaid: false },
+];

@@ -2,7 +2,7 @@ import { Wallet, CheckCircle, Clock, Receipt } from 'lucide-react';
 import { useBills } from '@/hooks/useBills';
 import { SummaryCard } from '@/components/SummaryCard';
 import { ProgressBar } from '@/components/ProgressBar';
-import { BillItem } from '@/components/BillItem';
+import { BillsList } from '@/components/BillsList';
 import { CategoryChart } from '@/components/CategoryChart';
 import { AddBillDialog } from '@/components/AddBillDialog';
 
@@ -78,28 +78,14 @@ const Index = () => {
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-foreground">Lista de Contas</h2>
               <span className="text-sm text-muted-foreground">
-                Ordenado por dia
+                Por categoria
               </span>
             </div>
-            <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2">
-              {bills.map((bill) => (
-                <BillItem
-                  key={bill.id}
-                  bill={bill}
-                  onTogglePaid={togglePaid}
-                  onDelete={deleteBill}
-                />
-              ))}
-              {bills.length === 0 && (
-                <div className="glass-card rounded-xl p-8 text-center">
-                  <Receipt className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Nenhuma conta cadastrada</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Clique em "Nova Conta" para começar
-                  </p>
-                </div>
-              )}
-            </div>
+            <BillsList
+              bills={bills}
+              onTogglePaid={togglePaid}
+              onDelete={deleteBill}
+            />
           </div>
 
           {/* Category Chart */}

@@ -9,12 +9,26 @@ import { ProgressBar } from '@/components/ProgressBar';
  import { HealthScore } from '@/components/HealthScore';
  import { DailyInsight } from '@/components/DailyInsight';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BankAccountsCard } from '@/components/BankAccountsCard';
+import { StatementImporter } from '@/components/StatementImporter';
+import { FinancialAnalysis } from '@/components/FinancialAnalysis';
+import { useBankAccounts } from '@/hooks/useBankAccounts';
 import { BillCategory, CategorySummary, CATEGORY_COLORS } from '@/types/bill';
 
 type PeriodFilter = 'today' | 'week' | 'month';
 
 function IndexContent() {
   const { bills, togglePaid, deleteBill, totals, categorySummary } = useBillsContext();
+  const { 
+    accounts, 
+    transactions, 
+    summary, 
+    isLoading: accountsLoading,
+    addAccount,
+    updateBalance,
+    deleteAccount,
+    refresh: refreshAccounts,
+  } = useBankAccounts();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('month');
   const [isLoading, setIsLoading] = useState(true);
@@ -117,11 +131,29 @@ function IndexContent() {
 
   return (
       <div className="space-y-6 animate-fade-in">
-        {/* Daily Insight + Health Score */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Top Row: Daily Insight + Health Score + Bank Accounts */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <DailyInsight bills={bills} totals={totals} />
           <HealthScore bills={bills} totals={totals} />
+          <BankAccountsCard
+            accounts={accounts}
+            totalBalance={summary.totalBalance}
+            onAddAccount={addAccount}
+            onUpdateBalance={updateBalance}
+            onDeleteAccount={deleteAccount}
+          />
         </div>
+
+        {/* Financial Analysis (only shows if accounts exist) */}
+        {accounts.length > 0 && (
+          <FinancialAnalysis
+            bills={bills}
+            billTotals={totals}
+            accounts={accounts}
+            transactions={transactions}
+            summary={summary}
+          />
+        )}
 
         {/* Month Selector */}
         <div className="flex items-center justify-between">
@@ -129,7 +161,9 @@ function IndexContent() {
             currentMonth={currentMonth}
             onMonthChange={setCurrentMonth}
           />
-
+          
+          <div className="flex items-center gap-2">
+            <StatementImporter accounts={accounts} onImportComplete={refreshAccounts} />
           <div className="flex gap-1 bg-secondary rounded-lg p-1">
             <button
               onClick={() => setPeriodFilter('today')}
@@ -161,6 +195,7 @@ function IndexContent() {
             >
               Mês
             </button>
+          </div>
           </div>
         </div>
 

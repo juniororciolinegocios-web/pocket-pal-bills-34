@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { CategorySummary, CATEGORY_LABELS } from '@/types/bill';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import { cn } from '@/lib/utils';
 
 interface ExpensesSectionProps {
   data: CategorySummary[];
@@ -30,26 +29,25 @@ export function ExpensesSection({ data, paidTotal, pendingTotal }: ExpensesSecti
   const total = data.reduce((sum, item) => sum + item.total, 0);
 
   const tabs = [
+    { id: 'categoria' as TabType, label: 'Detalhes por Categoria' },
     { id: 'pagos' as TabType, label: 'Pagos' },
     { id: 'apagar' as TabType, label: 'A Pagar' },
-    { id: 'categoria' as TabType, label: 'Detalhes por Categoria' },
   ];
 
   return (
-    <div className="bg-card rounded-xl p-5 border border-border">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-foreground">Despesas</h3>
-        <div className="flex gap-1 bg-secondary rounded-lg p-1">
+    <div className="bg-card rounded-xl p-5 border border-border card-hover">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+        <h3 className="text-sm font-semibold text-foreground">Despesas</h3>
+        <div className="flex gap-1 bg-secondary rounded-lg p-1 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "px-3 py-1.5 text-xs font-medium rounded-md transition-colors",
+              className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${
                 activeTab === tab.id
                   ? "bg-card text-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground"
-              )}
+              }`}
             >
               {tab.label}
             </button>
@@ -58,16 +56,16 @@ export function ExpensesSection({ data, paidTotal, pendingTotal }: ExpensesSecti
       </div>
 
       {activeTab === 'categoria' && (
-        <div className="flex items-start gap-6">
-          <div className="w-44 h-44 flex-shrink-0">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+          <div className="w-40 h-40 flex-shrink-0">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={chartData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
+                  innerRadius={45}
+                  outerRadius={70}
                   paddingAngle={2}
                   dataKey="value"
                 >
@@ -88,12 +86,12 @@ export function ExpensesSection({ data, paidTotal, pendingTotal }: ExpensesSecti
             </ResponsiveContainer>
           </div>
           
-          <div className="flex-1 space-y-2">
+          <div className="flex-1 w-full space-y-2">
             {data.map((item) => (
-              <div key={item.category} className="flex items-center justify-between text-sm py-1">
+              <div key={item.category} className="flex items-center justify-between text-sm py-1.5 px-2 rounded-lg hover:bg-secondary/50 transition-colors">
                 <div className="flex items-center gap-2">
                   <div 
-                    className="w-3 h-3 rounded-full" 
+                    className="w-2.5 h-2.5 rounded-full" 
                     style={{ backgroundColor: item.color }}
                   />
                   <span className="text-muted-foreground">{CATEGORY_LABELS[item.category]}</span>
@@ -111,16 +109,22 @@ export function ExpensesSection({ data, paidTotal, pendingTotal }: ExpensesSecti
       )}
 
       {activeTab === 'pagos' && (
-        <div className="text-center py-8">
+        <div className="text-center py-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-success/10 mb-4">
+            <span className="text-3xl">✓</span>
+          </div>
           <p className="text-3xl font-bold text-success">{formatCurrency(paidTotal)}</p>
-          <p className="text-sm text-muted-foreground mt-1">Total Pago</p>
+          <p className="text-sm text-muted-foreground mt-2">Total pago neste período</p>
         </div>
       )}
 
       {activeTab === 'apagar' && (
-        <div className="text-center py-8">
+        <div className="text-center py-10">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-warning/10 mb-4">
+            <span className="text-3xl">⏳</span>
+          </div>
           <p className="text-3xl font-bold text-warning">{formatCurrency(pendingTotal)}</p>
-          <p className="text-sm text-muted-foreground mt-1">Total a Pagar</p>
+          <p className="text-sm text-muted-foreground mt-2">Total a pagar neste período</p>
         </div>
       )}
     </div>

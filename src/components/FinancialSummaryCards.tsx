@@ -1,5 +1,4 @@
-import { TrendingUp, TrendingDown, Wallet } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { TrendingUp, Check, Clock } from 'lucide-react';
 
 interface FinancialSummaryCardsProps {
   total: number;
@@ -20,48 +19,44 @@ export function FinancialSummaryCards({ total, paid, pending, progress, dateRang
   return (
     <div className="space-y-4">
       {/* Resultado do Período */}
-      <div className="bg-card rounded-xl p-5 border border-border">
+      <div className="bg-card rounded-xl p-5 border border-border card-hover">
         <div className="flex items-start justify-between">
           <div>
-            <p className="text-sm text-muted-foreground">Resultado do Período</p>
-            <p className="text-3xl font-bold text-foreground mt-1">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">Resultado do Período</p>
+            <p className="text-2xl font-bold text-foreground mt-2">
               {formatCurrency(total)}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">{dateRange}</p>
+            <p className="text-xs text-muted-foreground mt-2">{dateRange}</p>
           </div>
-          <div className="flex items-center gap-1 text-success">
+          <div className="flex items-center gap-1.5 text-success bg-success/10 px-2 py-1 rounded-full">
             <TrendingUp className="h-4 w-4" />
-            <span className="text-sm font-medium">{progress.toFixed(1)}%</span>
+            <span className="text-xs font-medium">{progress.toFixed(0)}%</span>
           </div>
         </div>
       </div>
 
       {/* Entradas (Pagos) */}
-      <div className="bg-card rounded-xl p-5 border border-border">
-        <div className="flex items-center justify-between border-b border-border pb-3 mb-3">
-          <span className="font-medium text-foreground">Pagos</span>
-          <span className="text-sm font-medium text-success">Realizados</span>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total Pago</span>
-            <span className="font-semibold text-success">{formatCurrency(paid)}</span>
+      <div className="bg-card rounded-xl p-5 border border-border card-hover">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-success/10">
+            <Check className="h-4 w-4 text-success" />
           </div>
+          <span className="text-sm font-medium text-foreground">Pagos</span>
         </div>
+        <p className="text-2xl font-bold text-success">{formatCurrency(paid)}</p>
+        <p className="text-xs text-muted-foreground mt-1">Total pago no período</p>
       </div>
 
       {/* Saídas (Pendentes) */}
-      <div className="bg-card rounded-xl p-5 border border-border">
-        <div className="flex items-center justify-between border-b border-border pb-3 mb-3">
-          <span className="font-medium text-foreground">Pendentes</span>
-          <span className="text-sm font-medium text-warning">A Pagar</span>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total Pendente</span>
-            <span className="font-semibold text-warning">{formatCurrency(pending)}</span>
+      <div className="bg-card rounded-xl p-5 border border-border card-hover">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-warning/10">
+            <Clock className="h-4 w-4 text-warning" />
           </div>
+          <span className="text-sm font-medium text-foreground">Pendentes</span>
         </div>
+        <p className="text-2xl font-bold text-warning">{formatCurrency(pending)}</p>
+        <p className="text-xs text-muted-foreground mt-1">Total a pagar</p>
       </div>
     </div>
   );

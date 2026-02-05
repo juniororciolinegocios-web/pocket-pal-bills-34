@@ -1,143 +1,131 @@
 
-# Plano: Layout Clean + Novas Páginas
+# Chat Conversacional com IA para Gestão de Contas
 
-## Resumo
+## Visão Geral
 
-Vou aprimorar o visual do sistema com um layout mais limpo e moderno, além de criar as 4 páginas que aparecem na navegação: **Transações**, **Cartões de Crédito**, **Minhas Categorias** e **Agenda**.
-
----
-
-## 1. Melhorias no Layout (Visual Clean)
-
-### Header
-- Redesenhar com visual mais minimalista
-- Melhorar espaçamento e tipografia
-- Adicionar indicador visual na página ativa
-
-### Página Inicial (Visão Geral)
-- Cards com sombras mais suaves e bordas refinadas
-- Espaçamento mais consistente entre seções
-- Remover elementos redundantes
-- Melhorar hierarquia visual com tipografia
-
-### Componentes Gerais
-- Bordas mais sutis
-- Paleta de cores mais harmoniosa
-- Animações de transição suaves
-- Hover states mais elegantes
+Vou criar um assistente virtual integrado ao sistema que permitirá adicionar contas e obter resumos através de conversa natural em português.
 
 ---
 
-## 2. Página de Transações (`/transacoes`)
+## Funcionalidades
 
-Lista completa de todas as contas com funcionalidades avançadas:
+### Comandos por Linguagem Natural
+- **Adicionar contas**: "Adiciona conta de luz de 150 reais dia 15" → cria automaticamente na categoria CASA
+- **Resumos**: "Quanto já paguei esse mês?" → retorna totais pagos
+- **Consultas**: "Quais contas vencem essa semana?" → lista contas pendentes
+- **Por categoria**: "Quanto gasto com cartões?" → soma da categoria CARTAO
 
-- **Tabela de transações** com todas as contas
-- **Filtros**: por categoria, status (pago/pendente), período
-- **Busca** por nome da conta
-- **Ordenação** por data, valor ou nome
-- **Ações rápidas**: marcar como pago, editar, excluir
-
----
-
-## 3. Página de Cartões de Crédito (`/cartoes`)
-
-Visão focada nos cartões:
-
-- **Cards visuais** para cada cartão (Nubank, C6, Itaú, etc.)
-- **Total da fatura** de cada cartão
-- **Lista de compras** associadas a cada cartão
-- **Status**: pago ou pendente
-- **Resumo**: total geral de cartões
+### Interface do Chat
+- Botão flutuante no canto inferior direito
+- Painel deslizante com histórico de mensagens
+- Indicador de "digitando" durante processamento
+- Renderização de mensagens com Markdown
+- Ações rápidas sugeridas pela IA
 
 ---
 
-## 4. Página Minhas Categorias (`/categorias`)
+## Arquitetura Técnica
 
-Gerenciamento das categorias:
-
-- **Grid de categorias** existentes com cores
-- **Total gasto** por categoria
-- **Adicionar nova categoria** (futuramente)
-- **Estatísticas** de cada categoria
-- **Editar cor** e nome da categoria
-
----
-
-## 5. Página Agenda (`/agenda`)
-
-Calendário de vencimentos:
-
-- **Visualização de calendário** mensal
-- **Dias destacados** com contas a vencer
-- **Lista lateral** com contas do dia selecionado
-- **Cores por status**: verde (pago), amarelo (pendente), vermelho (vencido)
-
----
-
-## Arquivos a Serem Criados
+### Backend (Edge Function)
 
 ```text
-src/pages/Transactions.tsx      - Página de transações
-src/pages/CreditCards.tsx       - Página de cartões
-src/pages/Categories.tsx        - Página de categorias
-src/pages/Schedule.tsx          - Página de agenda
-src/components/Layout.tsx       - Layout compartilhado
-src/components/TransactionRow.tsx
-src/components/CreditCardItem.tsx
-src/components/CategoryCard.tsx
-src/components/CalendarView.tsx
+supabase/functions/chat/index.ts
 ```
 
-## Arquivos a Serem Modificados
+A edge function irá:
+1. Receber mensagens do usuário
+2. Incluir contexto financeiro atual (totais, categorias, contas)
+3. Chamar Lovable AI (google/gemini-3-flash-preview)
+4. Usar tool calling para extrair ações estruturadas
+5. Retornar resposta com streaming
+
+### Tool Calling para Ações
+
+A IA terá acesso a ferramentas:
+
+| Ferramenta | Descrição |
+|------------|-----------|
+| `add_bill` | Adicionar nova conta com nome, valor, dia, categoria |
+| `get_summary` | Obter resumo financeiro (total, pago, pendente) |
+| `list_bills` | Listar contas por status ou categoria |
+| `mark_paid` | Marcar conta como paga |
+
+### Frontend
 
 ```text
-src/App.tsx                     - Adicionar rotas
-src/index.css                   - Ajustes de cores/estilos
-src/components/Header.tsx       - Visual refinado
-src/pages/Index.tsx             - Layout mais clean
-src/components/FinancialSummaryCards.tsx
-src/components/ExpensesSection.tsx
-src/components/BillsList.tsx
-src/components/BillItem.tsx
+src/components/ChatAssistant.tsx    - Componente principal do chat
+src/components/ChatMessage.tsx      - Renderização de mensagens
+src/components/ChatInput.tsx        - Campo de entrada com envio
+src/hooks/useChat.ts                - Hook para gerenciar estado e streaming
 ```
 
 ---
 
-## Detalhes Técnicos
-
-### Estrutura de Rotas
+## Fluxo de Dados
 
 ```text
-/           -> Index.tsx (Visão Geral)
-/transacoes -> Transactions.tsx
-/cartoes    -> CreditCards.tsx
-/categorias -> Categories.tsx
-/agenda     -> Schedule.tsx
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Usuário   │────▶│ Edge Function│────▶│ Lovable AI  │
+│  "Adiciona  │     │   /chat      │     │   Gemini    │
+│   conta..." │     └──────────────┘     └─────────────┘
+└─────────────┘            │                    │
+       ▲                   │ Tool Call          │
+       │                   ▼                    │
+       │         ┌──────────────┐              │
+       │         │  Extrai ação │◀─────────────┘
+       │         │  estruturada │
+       │         └──────────────┘
+       │                   │
+       │                   ▼
+       │         ┌──────────────┐
+       └─────────│ Retorna JSON │
+                 │ + resposta   │
+                 └──────────────┘
 ```
-
-### Componente Layout Compartilhado
-
-Criar um `Layout.tsx` que encapsula o Header + área de conteúdo para evitar repetição em cada página.
-
-### Reutilização do Hook useBills
-
-Todas as páginas utilizarão o `useBills` existente para acessar e manipular os dados das contas.
-
-### Responsividade
-
-Todas as novas páginas serão responsivas, adaptando-se a desktop, tablet e mobile.
 
 ---
 
-## Ordem de Implementação
+## Arquivos a Criar
 
-1. Refatorar estilos globais e cores
-2. Criar componente Layout compartilhado
-3. Melhorar Header com visual clean
-4. Atualizar página Index com novo visual
-5. Criar página Transações
-6. Criar página Cartões de Crédito
-7. Criar página Minhas Categorias
-8. Criar página Agenda
-9. Atualizar rotas no App.tsx
+| Arquivo | Descrição |
+|---------|-----------|
+| `supabase/functions/chat/index.ts` | Edge function com Lovable AI |
+| `src/components/ChatAssistant.tsx` | Container do chat flutuante |
+| `src/components/ChatMessage.tsx` | Componente de mensagem |
+| `src/components/ChatInput.tsx` | Input com botão enviar |
+| `src/hooks/useChat.ts` | Gerenciamento de estado e API |
+
+## Arquivos a Modificar
+
+| Arquivo | Mudança |
+|---------|---------|
+| `supabase/config.toml` | Adicionar configuração da função |
+| `src/components/Layout.tsx` | Incluir ChatAssistant |
+| `src/hooks/useBills.ts` | Expor função para adicionar via chat |
+
+---
+
+## Exemplos de Interação
+
+**Usuário**: "Adiciona fatura do Nubank de 450 reais para dia 25"
+**IA**: "Adicionei a conta **Fatura Nubank** de **R$ 450,00** com vencimento no dia **25**, na categoria **Cartão**."
+
+**Usuário**: "Quanto ainda falta pagar esse mês?"
+**IA**: "Você ainda tem **R$ 15.234,50** pendentes de pagamento este mês, distribuídos em 12 contas."
+
+**Usuário**: "Quais contas de cartão tenho?"
+**IA**: "Suas contas de cartão:
+- Cartão C6: R$ 225,23 (pago)
+- Conta Itaú: R$ 1.926,48 (pendente)
+- Cartão Nubank PF: R$ 414,71 (pendente)
+..."
+
+---
+
+## Considerações de UX
+
+- Chat inicia minimizado como botão flutuante
+- Histórico persiste durante a sessão
+- Sugestões de comandos para novos usuários
+- Feedback visual ao adicionar contas (toast + atualização da lista)
+- Tratamento de erros com mensagens amigáveis

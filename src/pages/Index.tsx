@@ -1,17 +1,20 @@
 import { useState, useMemo, useEffect } from 'react';
-import { useBills } from '@/hooks/useBills';
 import { Layout } from '@/components/Layout';
+ import { useBillsContext } from '@/components/Layout';
 import { MonthSelector } from '@/components/MonthSelector';
 import { FinancialSummaryCards } from '@/components/FinancialSummaryCards';
 import { ExpensesSection } from '@/components/ExpensesSection';
 import { BillsList } from '@/components/BillsList';
 import { ProgressBar } from '@/components/ProgressBar';
+ import { HealthScore } from '@/components/HealthScore';
+ import { DailyInsight } from '@/components/DailyInsight';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BillCategory, CategorySummary, CATEGORY_COLORS } from '@/types/bill';
 
 type PeriodFilter = 'today' | 'week' | 'month';
 
-const Index = () => {
-  const { bills, togglePaid, addBill, deleteBill, totals, categorySummary } = useBills();
+function IndexContent() {
+  const { bills, togglePaid, deleteBill, totals, categorySummary } = useBillsContext();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('month');
   const [isLoading, setIsLoading] = useState(true);
@@ -87,23 +90,39 @@ const Index = () => {
     return { total, paid, pending, progress };
   }, [filteredBills]);
 
-  const filteredCategorySummary = useMemo(() => {
-    const categories: { [key: string]: any } = {};
+  const filteredCategorySummary = useMemo((): CategorySummary[] => {
+    const categories: Record<BillCategory, number> = {
+      CARTAO: 0,
+      ALUGUEL: 0,
+      CASA: 0,
+      INVESTIMENTO: 0,
+      CONVENIO: 0,
+      ESCOLA: 0,
+      OUTROS: 0,
+    };
 
     filteredBills.forEach(bill => {
-      if (!categories[bill.category]) {
-        const categoryData = categorySummary.find(c => c.category === bill.category);
-        categories[bill.category] = categoryData || { category: bill.category, total: 0, color: '#ccc' };
-      }
-      categories[bill.category].total = (categories[bill.category].total || 0) + bill.amount;
+      categories[bill.category] += bill.amount;
     });
 
-    return Object.values(categories);
+    return Object.entries(categories)
+      .filter(([_, total]) => total > 0)
+      .map(([category, total]) => ({
+        category: category as BillCategory,
+        total,
+        color: CATEGORY_COLORS[category as BillCategory],
+      }))
+      .sort((a, b) => b.total - a.total);
   }, [filteredBills, categorySummary]);
 
   return (
-    <Layout>
       <div className="space-y-6 animate-fade-in">
+        {/* Daily Insight + Health Score */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <DailyInsight bills={bills} totals={totals} />
+          <HealthScore bills={bills} totals={totals} />
+        </div>
+
         {/* Month Selector */}
         <div className="flex items-center justify-between">
           <MonthSelector
@@ -214,6 +233,13 @@ const Index = () => {
           </div>
         </div>
       </div>
+  );
+}
+
+const Index = () => {
+  return (
+    <Layout>
+      <IndexContent />
     </Layout>
   );
 };

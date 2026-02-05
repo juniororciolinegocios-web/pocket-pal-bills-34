@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Bill, BillCategory, CATEGORY_LABELS, CATEGORY_COLORS } from '@/types/bill';
 import { BillItem } from '@/components/BillItem';
-import { Receipt } from 'lucide-react';
+import { Receipt, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 interface BillsListProps {
   bills: Bill[];
@@ -20,6 +22,8 @@ const CATEGORY_ORDER: BillCategory[] = [
 ];
 
 export function BillsList({ bills, onTogglePaid, onDelete }: BillsListProps) {
+  const [openCategories, setOpenCategories] = useState<Record<string, boolean>>({});
+
   const groupedBills = useMemo(() => {
     const groups: Record<BillCategory, Bill[]> = {
       CARTAO: [],
@@ -43,6 +47,17 @@ export function BillsList({ bills, onTogglePaid, onDelete }: BillsListProps) {
     return groups;
   }, [bills]);
 
+  const toggleCategory = (category: BillCategory) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [category]: prev[category] === undefined ? false : !prev[category]
+    }));
+  };
+
+  const isCategoryOpen = (category: BillCategory) => {
+    return openCategories[category] !== false;
+  };
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -52,7 +67,7 @@ export function BillsList({ bills, onTogglePaid, onDelete }: BillsListProps) {
 
   if (bills.length === 0) {
     return (
-      <div className="glass-card rounded-xl p-8 text-center">
+      <div className="rounded-xl p-8 text-center bg-secondary/30">
         <Receipt className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
         <p className="text-muted-foreground">Nenhuma conta cadastrada</p>
         <p className="text-sm text-muted-foreground mt-1">
@@ -63,7 +78,7 @@ export function BillsList({ bills, onTogglePaid, onDelete }: BillsListProps) {
   }
 
   return (
-    <div className="space-y-5 max-h-[500px] overflow-y-auto pr-2">
+    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
       {CATEGORY_ORDER.map(category => {
         const categoryBills = groupedBills[category];
         if (categoryBills.length === 0) return null;
@@ -72,23 +87,34 @@ export function BillsList({ bills, onTogglePaid, onDelete }: BillsListProps) {
         const categoryPaid = categoryBills.filter(b => b.isPaid).length;
 
         return (
-          <div key={category} className="animate-fade-in">
-            <div className="flex items-center gap-3 mb-3 sticky top-0 bg-background/95 backdrop-blur-sm py-2 z-10">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: CATEGORY_COLORS[category] }}
-              />
-              <h3 className="font-semibold text-foreground">
-                {CATEGORY_LABELS[category]}
-              </h3>
-              <span className="text-sm text-muted-foreground">
-                ({categoryPaid}/{categoryBills.length} pagas)
-              </span>
-              <span className="ml-auto text-sm font-medium text-foreground">
+          <Collapsible
+            key={category}
+            open={isCategoryOpen(category)}
+            onOpenChange={() => toggleCategory(category)}
+            className="animate-fade-in"
+          >
+            <CollapsibleTrigger className="flex items-center gap-3 w-full py-2 px-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors">
+              <div className="flex items-center gap-3 flex-1">
+                <div 
+                  className="w-2.5 h-2.5 rounded-full" 
+                  style={{ backgroundColor: CATEGORY_COLORS[category] }}
+                />
+                <h3 className="font-medium text-sm text-foreground">
+                  {CATEGORY_LABELS[category]}
+                </h3>
+                <span className="text-xs text-muted-foreground">
+                  {categoryPaid}/{categoryBills.length}
+                </span>
+              </div>
+              <span className="text-sm font-semibold text-foreground tabular-nums">
                 {formatCurrency(categoryTotal)}
               </span>
-            </div>
-            <div className="space-y-2 pl-1">
+              <ChevronDown className={cn(
+                "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                isCategoryOpen(category) && "rotate-180"
+              )} />
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-1.5 pt-2 pl-1">
               {categoryBills.map(bill => (
                 <BillItem
                   key={bill.id}
@@ -97,8 +123,8 @@ export function BillsList({ bills, onTogglePaid, onDelete }: BillsListProps) {
                   onDelete={onDelete}
                 />
               ))}
-            </div>
-          </div>
+            </CollapsibleContent>
+          </Collapsible>
         );
       })}
     </div>

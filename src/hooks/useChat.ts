@@ -1,5 +1,5 @@
- import { useState, useCallback } from 'react';
- import { Bill, BillCategory } from '@/types/bill';
+import { useState, useCallback, useEffect } from 'react';
+import { Bill, BillCategory } from '@/types/bill';
  import { toast } from '@/hooks/use-toast';
  
  interface Message {
@@ -12,6 +12,13 @@
    arguments: Record<string, unknown>;
  }
  
+interface SmartAlert {
+  id: string;
+  type: 'urgent' | 'reminder' | 'celebration' | 'pattern';
+  message: string;
+  dismissed: boolean;
+}
+
  interface FinancialContext {
    total: number;
    paid: number;
@@ -32,6 +39,63 @@
  export function useChat({ financialContext, onAddBill, onTogglePaid, bills }: UseChatOptions) {
    const [messages, setMessages] = useState<Message[]>([]);
    const [isLoading, setIsLoading] = useState(false);
+  const [alerts, setAlerts] = useState<SmartAlert[]>([]);
+
+  // Generate smart alerts based on financial context
+  useEffect(() => {
+    const today = new Date().getDate();
+    const newAlerts: SmartAlert[] = [];
+
+    // Urgent bills (next 3 days)
+    const urgentBills = bills.filter(b => !b.isPaid && b.day >= today && b.day <= today + 3);
+    if (urgentBills.length > 0) {
+      const total = urgentBills.reduce((s, b) => s + b.amount, 0);
+      newAlerts.push({
+        id: 'urgent-bills',
+        type: 'urgent',
+        message: `⚠️ ${urgentBills.length} conta(s) vencem em até 3 dias! Total: R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+        dismissed: false,
+      });
+    }
+
+    // Celebration when all paid
+    if (financialContext.progress >= 100 && bills.length > 0) {
+      newAlerts.push({
+        id: 'all-paid',
+        type: 'celebration',
+        message: '🎉 Parabéns! Você pagou todas as contas do mês!',
+        dismissed: false,
+      });
+    }
+
+    // Progress milestone
+    if (financialContext.progress >= 50 && financialContext.progress < 100) {
+      newAlerts.push({
+        id: 'half-way',
+        type: 'reminder',
+        message: `💪 Você já pagou ${financialContext.progress.toFixed(0)}% das contas! Continue assim!`,
+        dismissed: false,
+      });
+    }
+
+    // High card spending pattern
+    const cardTotal = bills.filter(b => b.category === 'CARTAO').reduce((s, b) => s + b.amount, 0);
+    const cardRatio = financialContext.total > 0 ? (cardTotal / financialContext.total) * 100 : 0;
+    if (cardRatio > 40) {
+      newAlerts.push({
+        id: 'high-cards',
+        type: 'pattern',
+        message: `💳 Cartões representam ${cardRatio.toFixed(0)}% dos seus gastos. Quer dicas para reduzir?`,
+        dismissed: false,
+      });
+    }
+
+    setAlerts(newAlerts);
+  }, [bills, financialContext]);
+
+  const dismissAlert = useCallback((id: string) => {
+    setAlerts(prev => prev.map(a => a.id === id ? { ...a, dismissed: true } : a));
+  }, []);
  
    const processToolCalls = useCallback((toolCalls: ToolCall[]) => {
      const results: string[] = [];
@@ -223,5 +287,7 @@
      isLoading,
      sendMessage,
      clearMessages,
+    alerts,
+    dismissAlert,
    };
  }

@@ -1,8 +1,8 @@
- import { useState, useRef, useEffect } from 'react';
- import { MessageCircle, X, Trash2, Sparkles } from 'lucide-react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
+import { MessageCircle, X, Trash2, Sparkles, Bell, AlertTriangle, PartyPopper, TrendingUp, CreditCard } from 'lucide-react';
  import { Button } from '@/components/ui/button';
  import { Card } from '@/components/ui/card';
- import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
  import { ChatMessage } from '@/components/ChatMessage';
  import { ChatInput } from '@/components/ChatInput';
  import { useChat } from '@/hooks/useChat';
@@ -26,17 +26,33 @@
    "Quais contas de cartão tenho?",
    "Lista as contas pendentes",
  ];
+
+const alertIcons = {
+  urgent: AlertTriangle,
+  reminder: TrendingUp,
+  celebration: PartyPopper,
+  pattern: CreditCard,
+};
+
+const alertStyles = {
+  urgent: 'bg-destructive/10 border-destructive/30 text-destructive',
+  reminder: 'bg-primary/10 border-primary/30 text-primary',
+  celebration: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600',
+  pattern: 'bg-amber-500/10 border-amber-500/30 text-amber-600',
+};
  
  export function ChatAssistant({ bills, totals, onAddBill, onTogglePaid }: ChatAssistantProps) {
    const [isOpen, setIsOpen] = useState(false);
    const scrollRef = useRef<HTMLDivElement>(null);
  
-   const { messages, isLoading, sendMessage, clearMessages } = useChat({
+  const { messages, isLoading, sendMessage, clearMessages, alerts, dismissAlert } = useChat({
      financialContext: { ...totals, bills },
      onAddBill,
      onTogglePaid,
      bills,
    });
+
+  const activeAlerts = alerts.filter(a => !a.dismissed);
  
    // Auto-scroll to bottom when new messages arrive
    useEffect(() => {
@@ -71,6 +87,11 @@
            <div className="flex items-center gap-2">
              <Sparkles className="h-5 w-5" />
              <span className="font-semibold">Assistente Financeiro</span>
+              {activeAlerts.length > 0 && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary-foreground text-primary text-xs font-bold">
+                  {activeAlerts.length}
+                </span>
+              )}
            </div>
            <div className="flex items-center gap-1">
              <Button
@@ -93,8 +114,36 @@
            </div>
          </div>
  
+          {/* Smart Alerts */}
+          {activeAlerts.length > 0 && (
+            <div className="p-3 border-b space-y-2">
+              {activeAlerts.map((alert) => {
+                const Icon = alertIcons[alert.type];
+                return (
+                  <div
+                    key={alert.id}
+                    className={cn(
+                      "flex items-start gap-2 p-2 rounded-lg border text-xs",
+                      alertStyles[alert.type]
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0 mt-0.5" />
+                    <span className="flex-1">{alert.message}</span>
+                    <button
+                      onClick={() => dismissAlert(alert.id)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
          {/* Messages */}
-         <ScrollArea className="flex-1" ref={scrollRef}>
+          <ScrollArea className="flex-1">
+            <div ref={scrollRef}>
            {messages.length === 0 ? (
              <div className="p-6 space-y-4">
                <div className="text-center text-muted-foreground">
@@ -143,6 +192,7 @@
                )}
              </div>
            )}
+            </div>
          </ScrollArea>
  
          {/* Input */}
